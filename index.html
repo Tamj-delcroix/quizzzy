@@ -1,0 +1,526 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title>Quizzzy</title>
+
+    <link rel="stylesheet" href="style.css" />
+  </head>
+
+  <body>
+    <!-- =====================================================
+         HEADER
+    ====================================================== -->
+
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand-icon">Q</div>
+        <span>Quizzzy</span>
+      </div>
+
+      <div class="server-status">
+        <span class="status-dot"></span>
+        Online
+      </div>
+    </header>
+
+    <main>
+      <!-- =====================================================
+           HOME
+      ====================================================== -->
+
+      <section id="homeScreen" class="screen">
+        <div class="hero">
+          <span class="eyebrow">QUIZZZY PLATFORM</span>
+
+          <h1>
+            Quiz bareng,<br />
+            <span>lebih seru.</span>
+          </h1>
+
+          <p>Buat quiz sendiri, ajak teman, atau bermain solo.</p>
+
+          <div class="home-actions">
+            <button id="showCreateBtn" class="btn btn-primary">
+              Create Room
+            </button>
+
+            <button id="showJoinBtn" class="btn btn-secondary">
+              Join Game
+            </button>
+
+            <button id="showSoloBtn" class="btn btn-solo">Solo Quiz</button>
+
+            <button id="showCreateQuizBtn" class="btn btn-creator">
+              Create Quiz
+            </button>
+          </div>
+
+          <div class="home-info">
+            <div class="home-info-card">
+              <strong>🎮 Multiplayer</strong>
+              <span>Main bareng teman secara realtime.</span>
+            </div>
+
+            <div class="home-info-card">
+              <strong>🎯 Solo Mode</strong>
+              <span>Kerjakan quiz sendiri dengan timer.</span>
+            </div>
+
+            <div class="home-info-card">
+              <strong>✏️ Quiz Creator</strong>
+              <span>Buat pertanyaan quiz milikmu sendiri.</span>
+            </div>
+          </div>
+
+          <div class="home-quiz-section">
+            <div class="section-header">
+              <div>
+                <span class="eyebrow">QUIZ LIBRARY</span>
+                <h2>Available Quizzes</h2>
+              </div>
+            </div>
+
+            <div id="homeQuizList" class="home-quiz-list">
+              <div class="waiting-text">Loading quizzes...</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- =====================================================
+           CREATE ROOM
+      ====================================================== -->
+
+      <section id="createScreen" class="screen hidden">
+        <div class="panel">
+          <button id="backFromCreateBtn" class="back-btn">← Back</button>
+
+          <span class="eyebrow">HOST A GAME</span>
+
+          <h2>Create Room</h2>
+
+          <p class="panel-description">
+            Pilih quiz dan buat room untuk temanmu.
+          </p>
+
+          <div class="form-group">
+            <label for="hostName">Host Name</label>
+
+            <input
+              type="text"
+              id="hostName"
+              placeholder="Contoh: Ucupz"
+              maxlength="20"
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="quizSelect">Choose Quiz</label>
+
+            <select id="quizSelect">
+              <option value="">Loading quizzes...</option>
+            </select>
+          </div>
+
+          <button id="createRoomBtn" class="btn btn-primary full">
+            Create Room
+          </button>
+
+          <p id="createError" class="error-message"></p>
+        </div>
+      </section>
+
+      <!-- =====================================================
+           JOIN GAME
+      ====================================================== -->
+
+      <section id="joinScreen" class="screen hidden">
+        <div class="panel">
+          <button id="backFromJoinBtn" class="back-btn">← Back</button>
+
+          <span class="eyebrow">JOIN A GAME</span>
+
+          <h2>Enter Room</h2>
+
+          <p class="panel-description">Masukkan kode room dari host.</p>
+
+          <div class="form-group">
+            <label for="roomCodeInput"> Room Code </label>
+
+            <input
+              type="text"
+              id="roomCodeInput"
+              placeholder="QZ7K2P"
+              maxlength="6"
+              autocomplete="off"
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="playerName"> Nickname </label>
+
+            <input
+              type="text"
+              id="playerName"
+              placeholder="Masukkan nickname"
+              maxlength="20"
+            />
+          </div>
+
+          <button id="joinGameBtn" class="btn btn-primary full">
+            Join Game
+          </button>
+
+          <p id="joinError" class="error-message"></p>
+        </div>
+      </section>
+
+      <!-- =====================================================
+           SOLO SETUP
+      ====================================================== -->
+
+      <section id="soloSetupScreen" class="screen hidden">
+        <div class="panel solo-panel">
+          <button id="backFromSoloBtn" class="back-btn">← Back</button>
+
+          <span class="eyebrow">SOLO MODE</span>
+
+          <h2>Solo Quiz</h2>
+
+          <p class="panel-description">
+            Pilih quiz, masukkan nama, lalu kerjakan quiz sendiri.
+          </p>
+
+          <div class="form-group">
+            <label for="soloPlayerName"> Your Name </label>
+
+            <input
+              type="text"
+              id="soloPlayerName"
+              placeholder="Contoh: Ucupz"
+              maxlength="20"
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="soloQuizSelect"> Choose Quiz </label>
+
+            <select id="soloQuizSelect">
+              <option value="">Loading quizzes...</option>
+            </select>
+          </div>
+
+          <button id="startSoloBtn" class="btn btn-solo full">
+            Start Solo Quiz
+          </button>
+
+          <p id="soloError" class="error-message"></p>
+        </div>
+      </section>
+
+      <!-- =====================================================
+           CREATE QUIZ
+      ====================================================== -->
+
+      <section id="createQuizScreen" class="screen hidden">
+        <div class="creator-container">
+          <div class="creator-header">
+            <button id="backFromCreateQuizBtn" class="back-btn">← Back</button>
+
+            <span class="eyebrow"> QUIZ CREATOR </span>
+
+            <h2>Create Your Quiz</h2>
+
+            <p class="panel-description">
+              Buat quiz sendiri dengan pertanyaan dan pilihan jawaban.
+            </p>
+          </div>
+
+          <div class="card">
+            <div class="card-title">
+              <h2>Quiz Information</h2>
+
+              <p>Isi informasi dasar quiz kamu.</p>
+            </div>
+
+            <div class="form-group">
+              <label for="creatorQuizTitle"> Quiz Title </label>
+
+              <input
+                type="text"
+                id="creatorQuizTitle"
+                maxlength="100"
+                placeholder="Contoh: Dasar Pemrograman"
+              />
+            </div>
+
+            <div class="form-group">
+              <label for="creatorQuizDescription">
+                Description
+                <span>optional</span>
+              </label>
+
+              <textarea
+                id="creatorQuizDescription"
+                maxlength="500"
+                placeholder="Jelaskan sedikit tentang quiz ini..."
+              ></textarea>
+            </div>
+          </div>
+
+          <div class="section-header creator-question-header">
+            <div>
+              <span class="eyebrow"> QUESTION BUILDER </span>
+
+              <h2>Questions</h2>
+
+              <p>Setiap pertanyaan memiliki 4 pilihan jawaban.</p>
+            </div>
+
+            <button id="addQuestionBtn" type="button" class="btn btn-secondary">
+              + Add Question
+            </button>
+          </div>
+
+          <div id="creatorQuestions"></div>
+
+          <div class="bottom-actions creator-actions">
+            <button id="saveQuizBtn" type="button" class="btn btn-primary">
+              Save Quiz
+            </button>
+          </div>
+
+          <p id="creatorMessage" class="creator-message"></p>
+        </div>
+      </section>
+
+      <!-- =====================================================
+           LOBBY
+      ====================================================== -->
+
+      <section id="lobbyScreen" class="screen hidden">
+        <div class="lobby-container">
+          <div class="lobby-header">
+            <div>
+              <span class="eyebrow"> WAITING ROOM </span>
+
+              <h2 id="lobbyQuizTitle">Quiz Lobby</h2>
+            </div>
+
+            <div class="room-code-box">
+              <span>ROOM CODE</span>
+
+              <strong id="roomCodeDisplay"> ------ </strong>
+            </div>
+          </div>
+
+          <div class="lobby-content">
+            <div class="players-panel">
+              <div class="players-heading">
+                <div>
+                  <h2>Players</h2>
+
+                  <p id="playerCount">0 players</p>
+                </div>
+              </div>
+
+              <div id="playersList" class="players-list"></div>
+            </div>
+
+            <div id="hostControls" class="host-controls hidden">
+              <div>
+                <h3>Ready?</h3>
+
+                <p>Pastikan semua player sudah bergabung sebelum memulai.</p>
+              </div>
+
+              <button id="startGameBtn" class="btn btn-primary">
+                Start Game
+              </button>
+
+              <p id="lobbyMessage" class="waiting-text">
+                Waiting for players...
+              </p>
+            </div>
+
+            <div id="playerWaiting" class="player-waiting hidden">
+              <div class="waiting-icon">⏳</div>
+
+              <h3>You're in!</h3>
+
+              <p>Tunggu host memulai game.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- =====================================================
+           GAME
+      ====================================================== -->
+
+      <section id="gameScreen" class="screen hidden">
+        <div class="game-container">
+          <div class="game-top">
+            <div>
+              <span id="gameQuizTitle" class="game-label"> QUIZZZY </span>
+
+              <strong id="questionCounter"> Question 1 / 1 </strong>
+            </div>
+
+            <div class="game-top-right">
+              <div class="timer-box">
+                <span>TIME</span>
+
+                <strong id="timerDisplay"> 15 </strong>
+              </div>
+
+              <button
+                id="audioToggleBtn"
+                class="audio-toggle-btn"
+                type="button"
+                title="Audio settings"
+              >
+                🔊
+              </button>
+            </div>
+          </div>
+
+          <!-- AUDIO PANEL -->
+
+          <div id="audioPanel" class="audio-panel hidden">
+            <div class="audio-panel-header">
+              <div>
+                <strong>Audio Settings</strong>
+                <span>Atur volume game</span>
+              </div>
+
+              <button
+                id="closeAudioPanelBtn"
+                type="button"
+                class="audio-close-btn"
+              >
+                ×
+              </button>
+            </div>
+
+            <div class="audio-control">
+              <div>
+                <span>🎵 Music</span>
+                <strong id="musicVolumeValue"> 50% </strong>
+              </div>
+
+              <input
+                id="musicVolumeSlider"
+                type="range"
+                min="0"
+                max="100"
+                value="50"
+              />
+            </div>
+
+            <div class="audio-control">
+              <div>
+                <span>🔔 SFX</span>
+                <strong id="sfxVolumeValue"> 60% </strong>
+              </div>
+
+              <input
+                id="sfxVolumeSlider"
+                type="range"
+                min="0"
+                max="100"
+                value="60"
+              />
+            </div>
+
+            <button
+              id="muteAudioBtn"
+              type="button"
+              class="btn btn-secondary full"
+            >
+              🔇 Mute All
+            </button>
+          </div>
+
+          <div class="question-progress">
+            <div id="questionProgressBar" class="question-progress-fill"></div>
+          </div>
+
+          <div class="question-card">
+            <span class="question-number"> QUESTION </span>
+
+            <h1 id="questionText">Loading question...</h1>
+          </div>
+
+          <div id="answersGrid" class="answers-grid"></div>
+
+          <div id="answerStatus" class="answer-status"></div>
+        </div>
+      </section>
+
+      <!-- =====================================================
+           RESULT
+      ====================================================== -->
+
+      <section id="resultScreen" class="screen hidden">
+        <div class="result-container">
+          <span id="resultEyebrow" class="eyebrow"> GAME FINISHED </span>
+
+          <h1 id="resultTitle">🏆 Final Leaderboard</h1>
+
+          <div id="soloResultSummary" class="solo-result-summary hidden">
+            <div class="solo-result-score">
+              <span>Your Score</span>
+
+              <strong id="soloFinalScore"> 0 </strong>
+            </div>
+
+            <div class="solo-result-stats">
+              <div>
+                <span>Correct</span>
+
+                <strong id="soloCorrectCount"> 0 </strong>
+              </div>
+
+              <div>
+                <span>Wrong</span>
+
+                <strong id="soloWrongCount"> 0 </strong>
+              </div>
+
+              <div>
+                <span>Accuracy</span>
+
+                <strong id="soloAccuracy"> 0% </strong>
+              </div>
+            </div>
+          </div>
+
+          <div id="leaderboard" class="leaderboard"></div>
+
+          <button id="backHomeBtn" class="btn btn-primary">Back to Home</button>
+        </div>
+      </section>
+    </main>
+
+    <!-- BACKGROUND MUSIC -->
+
+    <audio
+      id="backgroundMusic"
+      src="/assets/audio/background.mp3"
+      loop
+      preload="auto"
+    ></audio>
+
+    <!-- SOCKET.IO -->
+
+    <script src="/socket.io/socket.io.js"></script>
+
+    <!-- QUIZZZY JS -->
+
+    <script src="script.js"></script>
+  </body>
+</html>
