@@ -1,6 +1,6 @@
 // ============================================================
 // QUIZZZY CLIENT
-// Multiplayer + Solo + Quiz Creator + Audio
+// Multiplayer + Solo + Quiz Creator + Edit + Delete + Audio
 // ============================================================
 
 const socket = io();
@@ -13,16 +13,15 @@ let role = null;
 let roomCode = null;
 let playerName = null;
 let quizTitle = "";
-
 let currentQuestion = 0;
 let totalQuestions = 0;
 let currentTimeLimit = 15;
-
 let timerInterval = null;
 let hasAnswered = false;
-
 let latestPlayers = [];
 let myScore = 0;
+let selectedQuizId = null;
+let editingQuizId = null;
 
 // ============================================================
 // SOLO
@@ -168,9 +167,7 @@ const soloWrongCount = document.getElementById("soloWrongCount");
 
 const soloAccuracy = document.getElementById("soloAccuracy");
 
-// ============================================================
-// AUDIO ELEMENTS
-// ============================================================
+// AUDIO
 
 const audioToggleBtn = document.getElementById("audioToggleBtn");
 
@@ -210,14 +207,12 @@ function showScreen(name) {
 }
 
 // ============================================================
-// INITIALIZE
+// INIT
 // ============================================================
 
 document.addEventListener("DOMContentLoaded", () => {
   initializeAudio();
-
   showScreen("home");
-
   loadQuizzes();
 });
 
@@ -226,30 +221,28 @@ document.addEventListener("DOMContentLoaded", () => {
 // ============================================================
 
 showCreateBtn?.addEventListener("click", () => {
+  selectedQuizId = null;
   clearMessage(createError);
-
   showScreen("create");
-
   loadQuizzes();
 });
 
 showJoinBtn?.addEventListener("click", () => {
   clearMessage(joinError);
-
   showScreen("join");
+  roomCodeInput?.focus();
 });
 
 showSoloBtn?.addEventListener("click", () => {
+  selectedQuizId = null;
   clearMessage(soloError);
-
   showScreen("soloSetup");
-
   loadSoloQuizzes();
 });
 
 showCreateQuizBtn?.addEventListener("click", () => {
+  editingQuizId = null;
   clearCreator();
-
   showScreen("createQuiz");
 
   if (creatorQuestions && creatorQuestions.children.length === 0) {
@@ -267,20 +260,24 @@ backFromJoinBtn?.addEventListener("click", () => {
 
 backFromSoloBtn?.addEventListener("click", () => {
   resetSoloState();
-
+  selectedQuizId = null;
   showScreen("home");
 });
 
 backFromCreateQuizBtn?.addEventListener("click", () => {
+  editingQuizId = null;
+  clearCreator();
   showScreen("home");
+  loadQuizzes();
 });
 
 backHomeBtn?.addEventListener("click", () => {
   stopBackgroundMusic();
-
   resetSoloState();
-
   resetClientState();
+
+  editingQuizId = null;
+  selectedQuizId = null;
 
   if (soloResultSummary) {
     soloResultSummary.classList.add("hidden");
@@ -295,12 +292,11 @@ backHomeBtn?.addEventListener("click", () => {
   }
 
   showScreen("home");
-
   loadQuizzes();
 });
 
 // ============================================================
-// QUIZ LIST
+// QUIZ API
 // ============================================================
 
 async function fetchQuizzes() {
@@ -347,6 +343,10 @@ async function loadQuizzes() {
 
         quizSelect.appendChild(option);
       });
+
+      if (selectedQuizId) {
+        quizSelect.value = String(selectedQuizId);
+      }
     }
 
     renderHomeQuizList(quizzes);
@@ -404,6 +404,10 @@ async function loadSoloQuizzes() {
 
       soloQuizSelect.appendChild(option);
     });
+
+    if (selectedQuizId) {
+      soloQuizSelect.value = String(selectedQuizId);
+    }
   } catch (error) {
     console.error("LOAD SOLO QUIZZES ERROR:", error);
 
@@ -416,7 +420,7 @@ async function loadSoloQuizzes() {
 }
 
 // ============================================================
-// HOME QUIZ LIST
+// HOME QUIZ LIBRARY
 // ============================================================
 
 function renderHomeQuizList(quizzes) {
@@ -459,10 +463,160 @@ function renderHomeQuizList(quizzes) {
           questions
         </span>
       </div>
+
+      <div class="home-quiz-actions">
+        <button
+          type="button"
+          class="home-quiz-action edit"
+          title="Edit Quiz"
+        >
+          ✎
+        </button>
+
+        <button
+          type="button"
+          class="home-quiz-action delete"
+          title="Delete Quiz"
+        >
+          🗑
+        </button>
+      </div>
     `;
+
+    card.querySelector(".edit")?.addEventListener("click", (event) => {
+      event.stopPropagation();
+      editQuiz(quiz.id);
+    });
+
+    card.querySelector(".delete")?.addEventListener("click", (event) => {
+      event.stopPropagation();
+      deleteQuiz(quiz.id, quiz.title);
+    });
 
     homeQuizList.appendChild(card);
   });
+}
+
+// ============================================================
+// EDIT QUIZ
+// ============================================================
+
+async function editQuiz(quizId) {
+  try {
+    const response = await fetch(`/api/quizzes/${Number(quizId)}`);
+
+    const data = await response.json();
+
+    if (!response.ok || !data.success) {
+      throw new Error(data.message || "Gagal mengambil data quiz.");
+    }
+
+    const quiz = data.quiz || {};
+
+    const questions = Array.isArray(data.questions) ? data.questions : [];
+
+    editingQuizId = Number(quizId);
+
+    creatorQuizTitle.value = quiz.title || "";
+
+    creatorQuizDescription.value = quiz.description || "";
+
+    creatorQuestions.innerHTML = "";
+
+    creatorQuestionCount = 0;
+
+    questions.forEach((question) => {
+      addQuestion();
+
+      const card = creatorQuestions.lastElementChild;
+
+      const questionInput = card.querySelector(".creator-question-input");
+
+      const answerInputs = card.querySelectorAll(".creator-answer-input");
+
+      const timeInput = card.querySelector(".creator-time-input");
+
+      questionInput.value = question.question || "";
+
+      timeInput.value = String(question.time_limit || 15);
+
+      const answers = Array.isArray(question.answers) ? question.answers : [];
+
+      answers.slice(0, 4).forEach((answer, index) => {
+        if (!answerInputs[index]) {
+          return;
+        }
+
+        answerInputs[index].value = answer.answer_text || "";
+
+        if (Number(answer.is_correct) === 1) {
+          const letter = String.fromCharCode(65 + index);
+
+          const radio = card.querySelector(
+            `input[type="radio"][value="${letter}"]`,
+          );
+
+          if (radio) {
+            radio.checked = true;
+          }
+        }
+      });
+    });
+
+    if (!questions.length) {
+      addQuestion();
+    }
+
+    saveQuizBtn.textContent = "Update Quiz";
+
+    clearCreatorMessage();
+
+    showScreen("createQuiz");
+  } catch (error) {
+    console.error("EDIT QUIZ ERROR:", error);
+
+    alert(error.message || "Gagal membuka quiz untuk diedit.");
+  }
+}
+
+// ============================================================
+// DELETE QUIZ
+// ============================================================
+
+async function deleteQuiz(quizId, quizTitle) {
+  const confirmed = confirm(
+    `Hapus quiz "${quizTitle}"?\n\n` +
+      "Quiz beserta semua pertanyaannya akan dihapus.",
+  );
+
+  if (!confirmed) {
+    return;
+  }
+
+  try {
+    const response = await fetch(`/api/quizzes/${Number(quizId)}`, {
+      method: "DELETE",
+    });
+
+    const data = await response.json();
+
+    if (!response.ok || !data.success) {
+      throw new Error(data.message || "Gagal menghapus quiz.");
+    }
+
+    if (editingQuizId === Number(quizId)) {
+      editingQuizId = null;
+      clearCreator();
+    }
+
+    await loadQuizzes();
+
+    alert("Quiz berhasil dihapus.");
+  } catch (error) {
+    console.error("DELETE QUIZ ERROR:", error);
+
+    alert(error.message || "Gagal menghapus quiz.");
+  }
 }
 
 // ============================================================
@@ -493,7 +647,6 @@ createRoomBtn?.addEventListener("click", async () => {
   }
 
   createRoomBtn.disabled = true;
-
   createRoomBtn.textContent = "Creating...";
 
   try {
@@ -679,6 +832,8 @@ startSoloBtn?.addEventListener("click", async () => {
 
     soloAnswered = false;
 
+    selectedQuizId = null;
+
     showScreen("game");
 
     startBackgroundMusic();
@@ -708,12 +863,10 @@ function renderSoloQuestion() {
 
   if (!question) {
     finishSoloGame();
-
     return;
   }
 
   stopTimer();
-
   stopSoloTimer();
 
   soloAnswered = false;
@@ -1077,7 +1230,7 @@ socket.on("roomState", (state) => {
 });
 
 // ============================================================
-// RENDER PLAYERS
+// PLAYERS
 // ============================================================
 
 function renderPlayers(players) {
@@ -1151,10 +1304,6 @@ socket.on("gameQuestion", (data) => {
 
   startBackgroundMusic();
 
-  // ========================================================
-  // HOST
-  // ========================================================
-
   if (role === "host") {
     stopTimer();
 
@@ -1164,7 +1313,6 @@ socket.on("gameQuestion", (data) => {
 
     answersGrid.innerHTML = `
         <div class="host-live-panel">
-
           <h3>
             👑 Host Mode
           </h3>
@@ -1178,7 +1326,6 @@ socket.on("gameQuestion", (data) => {
           </div>
 
           <div class="player-live-panel">
-
             <div class="player-live-score">
               Question
               ${currentQuestion}
@@ -1189,9 +1336,7 @@ socket.on("gameQuestion", (data) => {
             <p>
               Tunggu player menjawab pertanyaan ini.
             </p>
-
           </div>
-
         </div>
       `;
 
@@ -1203,10 +1348,6 @@ socket.on("gameQuestion", (data) => {
 
     return;
   }
-
-  // ========================================================
-  // PLAYER
-  // ========================================================
 
   questionText.textContent = data.question || "Question unavailable.";
 
@@ -1401,7 +1542,6 @@ function ensureLiveLeaderboard() {
 
   panel.innerHTML = `
     <div class="live-leaderboard-header">
-
       <div>
         <h3>
           Live Leaderboard
@@ -1415,7 +1555,6 @@ function ensureLiveLeaderboard() {
       <div class="host-live-status">
         LIVE
       </div>
-
     </div>
 
     <div
@@ -1491,7 +1630,6 @@ function updateLiveLeaderboard(players) {
         </div>
 
         <div class="live-rank-info">
-
           <div class="live-rank-name">
             ${escapeHtml(player.name || "Unknown")}
           </div>
@@ -1505,7 +1643,6 @@ function updateLiveLeaderboard(players) {
                   }/${totalQuestions}`
             }
           </div>
-
         </div>
 
         <div class="live-rank-score">
@@ -1580,18 +1717,18 @@ function renderFinalLeaderboard(players) {
     }
 
     item.innerHTML = `
-        <div class="leaderboard-rank">
-          ${player.rank === 1 ? "🏆" : player.rank}
-        </div>
+      <div class="leaderboard-rank">
+        ${player.rank === 1 ? "🏆" : player.rank}
+      </div>
 
-        <div class="leaderboard-name">
-          ${escapeHtml(player.name || "Unknown")}
-        </div>
+      <div class="leaderboard-name">
+        ${escapeHtml(player.name || "Unknown")}
+      </div>
 
-        <div class="leaderboard-score">
-          ${Number(player.score || 0)} pts
-        </div>
-      `;
+      <div class="leaderboard-score">
+        ${Number(player.score || 0)} pts
+      </div>
+    `;
 
     leaderboard.appendChild(item);
   });
@@ -1646,7 +1783,6 @@ function addQuestion() {
 
   card.innerHTML = `
     <div class="question-top">
-
       <div>
         <span class="question-number">
           QUESTION ${number}
@@ -1664,7 +1800,6 @@ function addQuestion() {
       >
         Remove
       </button>
-
     </div>
 
     <div class="form-group">
@@ -1680,15 +1815,10 @@ function addQuestion() {
     </div>
 
     <div class="creator-answer-list">
-
       ${createAnswerInput("A", true)}
-
       ${createAnswerInput("B", false)}
-
       ${createAnswerInput("C", false)}
-
       ${createAnswerInput("D", false)}
-
     </div>
 
     <div class="form-group creator-time-group">
@@ -1726,9 +1856,8 @@ function addQuestion() {
 
   const removeButton = card.querySelector("[data-remove-question]");
 
-  removeButton.addEventListener("click", () => {
+  removeButton?.addEventListener("click", () => {
     card.remove();
-
     renumberCreatorQuestions();
   });
 
@@ -1738,7 +1867,6 @@ function addQuestion() {
 function createAnswerInput(letter, checked) {
   return `
     <div class="creator-answer-row">
-
       <span class="creator-answer-letter">
         ${letter}
       </span>
@@ -1763,7 +1891,6 @@ function createAnswerInput(letter, checked) {
           Correct
         </span>
       </label>
-
     </div>
   `;
 }
@@ -1792,9 +1919,7 @@ function renumberCreatorQuestions() {
       title.textContent = `Question ${number}`;
     }
 
-    const radios = card.querySelectorAll('input[type="radio"]');
-
-    radios.forEach((radio) => {
+    card.querySelectorAll('input[type="radio"]').forEach((radio) => {
       radio.name = `correct-${number}`;
     });
   });
@@ -1802,11 +1927,13 @@ function renumberCreatorQuestions() {
   creatorQuestionCount = cards.length;
 }
 
-addQuestionBtn?.addEventListener("click", () => {
-  addQuestion();
-});
+addQuestionBtn?.addEventListener("click", addQuestion);
 
 saveQuizBtn?.addEventListener("click", saveQuiz);
+
+// ============================================================
+// SAVE / UPDATE QUIZ
+// ============================================================
 
 async function saveQuiz() {
   clearCreatorMessage();
@@ -1895,11 +2022,17 @@ async function saveQuiz() {
 
   saveQuizBtn.disabled = true;
 
-  saveQuizBtn.textContent = "Saving...";
+  saveQuizBtn.textContent = editingQuizId ? "Updating..." : "Saving...";
 
   try {
-    const response = await fetch("/api/quizzes", {
-      method: "POST",
+    const isEditing = Boolean(editingQuizId);
+
+    const url = isEditing
+      ? `/api/quizzes/${Number(editingQuizId)}`
+      : "/api/quizzes";
+
+    const response = await fetch(url, {
+      method: isEditing ? "PUT" : "POST",
 
       headers: {
         "Content-Type": "application/json",
@@ -1918,11 +2051,16 @@ async function saveQuiz() {
       throw new Error(data.message || "Gagal menyimpan quiz.");
     }
 
-    showCreatorMessage("✓ Quiz berhasil dibuat!", false);
+    showCreatorMessage(
+      isEditing ? "✓ Quiz berhasil diupdate!" : "✓ Quiz berhasil dibuat!",
+      false,
+    );
 
     await loadQuizzes();
 
     setTimeout(() => {
+      editingQuizId = null;
+
       clearCreator();
 
       showScreen("home");
@@ -1936,9 +2074,13 @@ async function saveQuiz() {
   } finally {
     saveQuizBtn.disabled = false;
 
-    saveQuizBtn.textContent = "Save Quiz";
+    saveQuizBtn.textContent = editingQuizId ? "Update Quiz" : "Save Quiz";
   }
 }
+
+// ============================================================
+// CREATOR RESET
+// ============================================================
 
 function clearCreator() {
   creatorQuestionCount = 0;
@@ -1956,6 +2098,10 @@ function clearCreator() {
   }
 
   clearCreatorMessage();
+
+  if (saveQuizBtn) {
+    saveQuizBtn.textContent = editingQuizId ? "Update Quiz" : "Save Quiz";
+  }
 }
 
 function showCreatorMessage(message, error) {
@@ -1981,7 +2127,7 @@ function clearCreatorMessage() {
 }
 
 // ============================================================
-// AUDIO SYSTEM
+// AUDIO
 // ============================================================
 
 function initializeAudio() {
@@ -2019,9 +2165,7 @@ function startBackgroundMusic() {
     return;
   }
 
-  backgroundMusic.play().catch(() => {
-    // Browser membutuhkan user gesture.
-  });
+  backgroundMusic.play().catch(() => {});
 }
 
 function stopBackgroundMusic() {
@@ -2057,9 +2201,7 @@ function playSound(type) {
 
   audio.volume = sfxVolume / 100;
 
-  audio.play().catch(() => {
-    // Browser dapat memblokir audio.
-  });
+  audio.play().catch(() => {});
 }
 
 audioToggleBtn?.addEventListener("click", () => {
@@ -2250,7 +2392,7 @@ function escapeHtml(value) {
 }
 
 // ============================================================
-// CONNECTION
+// SOCKET ERRORS
 // ============================================================
 
 socket.on("connect_error", (error) => {
@@ -2260,3 +2402,282 @@ socket.on("connect_error", (error) => {
 socket.on("disconnect", (reason) => {
   console.log("🔌 Socket disconnected:", reason);
 });
+
+// ============================================================
+// DYNAMIC EDIT / DELETE STYLE
+// ============================================================
+
+const editDeleteStyle = document.createElement("style");
+
+editDeleteStyle.textContent = `
+  .home-quiz-actions {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+  }
+
+  .home-quiz-action {
+    width: 34px;
+    height: 34px;
+    border: 1px solid #e5ebf5;
+    border-radius: 10px;
+    background: #f8faff;
+    color: #5f6f89;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 14px;
+    transition: 0.2s ease;
+  }
+
+  .home-quiz-action:hover {
+    transform: translateY(-1px);
+    background: #edf3ff;
+    color: #4169d8;
+    border-color: #cddcff;
+  }
+
+  .home-quiz-action.delete:hover {
+    background: #fff1f1;
+    color: #e04d4d;
+    border-color: #ffd0d0;
+  }
+
+  .home-quiz-card {
+    position: relative;
+  }
+
+  @media (max-width: 500px) {
+    .home-quiz-actions {
+      gap: 4px;
+    }
+
+    .home-quiz-action {
+      width: 30px;
+      height: 30px;
+    }
+  }
+`;
+
+document.head.appendChild(editDeleteStyle);
+
+// ============================================================
+// QUIZZZY - SAFE UI/UX POLISH
+// ============================================================
+
+// ------------------------------------------------------------
+// BUTTON CLICK FEEDBACK
+// ------------------------------------------------------------
+
+document.addEventListener("click", (event) => {
+  const button = event.target.closest("button");
+
+  if (!button || button.disabled) {
+    return;
+  }
+
+  button.classList.add("button-clicked");
+
+  setTimeout(() => {
+    button.classList.remove("button-clicked");
+  }, 180);
+});
+
+// ------------------------------------------------------------
+// INPUT FOCUS POLISH
+// ------------------------------------------------------------
+
+document.addEventListener("focusin", (event) => {
+  const input = event.target;
+
+  if (input.matches("input, textarea, select")) {
+    input.parentElement?.classList.add("input-focused");
+  }
+});
+
+document.addEventListener("focusout", (event) => {
+  const input = event.target;
+
+  if (input.matches("input, textarea, select")) {
+    input.parentElement?.classList.remove("input-focused");
+  }
+});
+
+// ------------------------------------------------------------
+// ANSWER BUTTON AUTO POLISH
+// ------------------------------------------------------------
+
+const answerObserver = new MutationObserver(() => {
+  document.querySelectorAll(".answer-button").forEach((button) => {
+    if (button.dataset.uiPolished === "true") {
+      return;
+    }
+
+    button.dataset.uiPolished = "true";
+
+    button.addEventListener("mouseenter", () => {
+      if (!button.disabled) {
+        button.style.transform = "translateY(-2px)";
+      }
+    });
+
+    button.addEventListener("mouseleave", () => {
+      if (!button.disabled) {
+        button.style.transform = "";
+      }
+    });
+  });
+});
+
+if (answersGrid) {
+  answerObserver.observe(answersGrid, {
+    childList: true,
+    subtree: true,
+  });
+}
+
+// ------------------------------------------------------------
+// TIMER VISUAL FEEDBACK
+// ------------------------------------------------------------
+
+function updateTimerVisualSafe() {
+  if (!timerDisplay) {
+    return;
+  }
+
+  const value = Number(timerDisplay.textContent);
+
+  timerDisplay.classList.remove("timer-safe", "timer-warning", "timer-danger");
+
+  if (value <= 5) {
+    timerDisplay.classList.add("timer-danger");
+  } else if (value <= 10) {
+    timerDisplay.classList.add("timer-warning");
+  } else {
+    timerDisplay.classList.add("timer-safe");
+  }
+}
+
+const timerObserver = new MutationObserver(() => {
+  updateTimerVisualSafe();
+});
+
+if (timerDisplay) {
+  timerObserver.observe(timerDisplay, {
+    childList: true,
+    characterData: true,
+    subtree: true,
+  });
+
+  updateTimerVisualSafe();
+}
+
+// ------------------------------------------------------------
+// CREATOR QUESTION CARD ANIMATION
+// ------------------------------------------------------------
+
+const creatorObserver = new MutationObserver((mutations) => {
+  mutations.forEach((mutation) => {
+    mutation.addedNodes.forEach((node) => {
+      if (
+        node.nodeType !== Node.ELEMENT_NODE ||
+        !node.classList.contains("creator-question-card")
+      ) {
+        return;
+      }
+
+      node.style.opacity = "0";
+
+      node.style.transform = "translateY(12px)";
+
+      requestAnimationFrame(() => {
+        node.style.transition = "opacity .25s ease, transform .25s ease";
+
+        node.style.opacity = "1";
+
+        node.style.transform = "translateY(0)";
+      });
+    });
+  });
+});
+
+if (creatorQuestions) {
+  creatorObserver.observe(creatorQuestions, {
+    childList: true,
+  });
+}
+
+// ------------------------------------------------------------
+// ROOM CODE AUTO UPPERCASE
+// ------------------------------------------------------------
+
+roomCodeInput?.addEventListener("input", () => {
+  roomCodeInput.value = roomCodeInput.value
+    .toUpperCase()
+    .replace(/[^A-Z0-9]/g, "")
+    .slice(0, 6);
+});
+
+// ------------------------------------------------------------
+// ENTER KEY - SOLO
+// ------------------------------------------------------------
+
+soloPlayerNameInput?.addEventListener("keydown", (event) => {
+  if (event.key === "Enter") {
+    startSoloBtn?.click();
+  }
+});
+
+// ------------------------------------------------------------
+// CREATOR TITLE - PREVENT ACCIDENTAL SUBMIT
+// ------------------------------------------------------------
+
+creatorQuizTitle?.addEventListener("keydown", (event) => {
+  if (event.key === "Enter") {
+    event.preventDefault();
+  }
+});
+
+// ------------------------------------------------------------
+// PAGE VISIBILITY
+// ------------------------------------------------------------
+
+document.addEventListener("visibilitychange", () => {
+  if (document.hidden) {
+    if (backgroundMusic && !backgroundMusic.paused) {
+      backgroundMusic.pause();
+    }
+
+    return;
+  }
+
+  if (
+    backgroundMusic &&
+    !audioMuted &&
+    (soloMode || role === "player" || role === "host")
+  ) {
+    backgroundMusic.play().catch(() => {});
+  }
+});
+
+// ------------------------------------------------------------
+// REDUCED MOTION SUPPORT
+// ------------------------------------------------------------
+
+if (
+  window.matchMedia &&
+  window.matchMedia("(prefers-reduced-motion: reduce)").matches
+) {
+  document.documentElement.classList.add("reduce-motion");
+}
+
+// ------------------------------------------------------------
+// INITIAL UI POLISH
+// ------------------------------------------------------------
+
+setTimeout(() => {
+  updateTimerVisualSafe();
+}, 100);

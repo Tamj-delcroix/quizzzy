@@ -2327,3 +2327,638 @@ select {
     grid-column: 2;
   }
 }
+/* ============================================================
+   QUIZZZY UI/UX POLISHED STYLE
+   ============================================================ */
+
+:root {
+  --qz-blue: #4f7cff;
+  --qz-blue-dark: #315bd6;
+  --qz-blue-soft: #edf3ff;
+  --qz-yellow: #ffd84d;
+  --qz-green: #38c98a;
+  --qz-text: #172033;
+  --qz-muted: #71809a;
+  --qz-border: #e5ebf5;
+  --qz-surface: #ffffff;
+  --qz-bg: #f5f8ff;
+  --qz-shadow: 0 16px 45px rgba(45, 72, 120, 0.09);
+  --qz-shadow-hover: 0 22px 55px rgba(45, 72, 120, 0.14);
+}
+
+/* RESET */
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  min-height: 100vh;
+  font-family: Arial, Helvetica, sans-serif;
+  background:
+    radial-gradient(circle at 8% 5%, rgba(79, 124, 255, 0.09), transparent 28%),
+    radial-gradient(
+      circle at 92% 12%,
+      rgba(255, 216, 77, 0.1),
+      transparent 24%
+    ),
+    linear-gradient(180deg, #f8faff 0%, #f3f7ff 48%, #f8fbff 100%);
+  color: var(--qz-text);
+}
+
+button,
+input,
+select,
+textarea {
+  font-family: inherit;
+}
+
+button {
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 3px solid rgba(79, 124, 255, 0.18);
+  outline-offset: 2px;
+}
+
+::selection {
+  background: rgba(79, 124, 255, 0.18);
+  color: var(--qz-text);
+}
+
+/* HIDDEN */
+
+.hidden {
+  display: none !important;
+}
+
+/* ============================================================
+   TOPBAR
+   ============================================================ */
+
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  min-height: 70px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 5%;
+  background: rgba(255, 255, 255, 0.88);
+  border-bottom: 1px solid rgba(229, 235, 245, 0.9);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  box-shadow: 0 5px 25px rgba(35, 60, 105, 0.05);
+}
+
+.topbar .brand,
+.topbar .logo,
+.topbar a {
+  transition:
+    transform 0.2s ease,
+    opacity 0.2s ease;
+}
+
+.topbar .brand:hover,
+.topbar .logo:hover {
+  transform: translateY(-1px);
+}
+
+/* ============================================================
+   HERO
+   ============================================================ */
+
+.hero {
+  position: relative;
+  overflow: hidden;
+}
+
+.hero::before,
+.hero::after {
+  content: "";
+  position: absolute;
+  pointer-events: none;
+  border-radius: 999px;
+}
+
+.hero::before {
+  width: 240px;
+  height: 240px;
+  right: -90px;
+  top: -80px;
+  background: rgba(79, 124, 255, 0.1);
+}
+
+.hero::after {
+  width: 170px;
+  height: 170px;
+  left: -70px;
+  bottom: -80px;
+  background: rgba(56, 201, 138, 0.08);
+}
+
+/* ============================================================
+   BUTTONS
+   ============================================================ */
+
+.btn {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid transparent;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    background 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.btn::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    120deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.2) 45%,
+    transparent 70%
+  );
+  transform: translateX(-120%);
+  transition: transform 0.45s ease;
+  pointer-events: none;
+}
+
+.btn:hover::after {
+  transform: translateX(120%);
+}
+
+.btn:hover {
+  transform: translateY(-2px);
+}
+
+.btn:active {
+  transform: translateY(0);
+}
+
+.btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+  transform: none;
+  box-shadow: none;
+}
+
+/* ============================================================
+   PANELS / CARDS
+   ============================================================ */
+
+.panel,
+.home-info-card,
+.quiz-card,
+.creator-question-card,
+.audio-panel,
+.lobby-card,
+.game-card,
+.result-card {
+  border-color: rgba(225, 232, 243, 0.95);
+}
+
+.panel,
+.home-info-card,
+.quiz-card,
+.creator-question-card,
+.lobby-card,
+.game-card,
+.result-card {
+  box-shadow: var(--qz-shadow);
+  transition:
+    transform 0.22s ease,
+    box-shadow 0.22s ease,
+    border-color 0.22s ease;
+}
+
+.home-info-card:hover,
+.quiz-card:hover,
+.creator-question-card:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--qz-shadow-hover);
+  border-color: rgba(79, 124, 255, 0.18);
+}
+
+/* ============================================================
+   HOME
+   ============================================================ */
+
+.home-actions {
+  gap: 14px;
+}
+
+.home-actions .btn {
+  min-height: 50px;
+}
+
+.home-quiz-list {
+  gap: 18px;
+}
+
+.quiz-card {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(
+    145deg,
+    rgba(255, 255, 255, 0.98),
+    rgba(248, 251, 255, 0.98)
+  );
+}
+
+.quiz-card::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 4px;
+  background: linear-gradient(
+    90deg,
+    var(--qz-blue),
+    var(--qz-yellow),
+    var(--qz-green)
+  );
+}
+
+.quiz-card .btn {
+  min-height: 40px;
+}
+
+.home-info-card {
+  background: rgba(255, 255, 255, 0.92);
+}
+
+/* ============================================================
+   FORMS
+   ============================================================ */
+
+.form-group input,
+.form-group select,
+.form-group textarea,
+input[type="text"],
+input[type="number"],
+select,
+textarea {
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    background 0.2s ease;
+}
+
+.form-group input:hover,
+.form-group select:hover,
+.form-group textarea:hover,
+input[type="text"]:hover,
+input[type="number"]:hover,
+select:hover,
+textarea:hover {
+  border-color: #cfd9ea;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus,
+input[type="text"]:focus,
+input[type="number"]:focus,
+select:focus,
+textarea:focus {
+  border-color: var(--qz-blue);
+  background: #fff;
+  box-shadow: 0 0 0 4px rgba(79, 124, 255, 0.09);
+}
+
+/* ============================================================
+   LOBBY
+   ============================================================ */
+
+.lobby-code,
+.room-code,
+.code-box {
+  position: relative;
+}
+
+.lobby-code {
+  background: linear-gradient(135deg, #f4f7ff 0%, #eef4ff 100%);
+  border-color: rgba(79, 124, 255, 0.16);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.75);
+}
+
+.players-list {
+  scrollbar-width: thin;
+  scrollbar-color: #cbd6e8 transparent;
+}
+
+.player-card,
+.player-item {
+  transition:
+    transform 0.18s ease,
+    background 0.18s ease,
+    border-color 0.18s ease;
+}
+
+.player-card:hover,
+.player-item:hover {
+  transform: translateX(3px);
+  background: #f8faff;
+  border-color: #d9e3f4;
+}
+
+/* ============================================================
+   GAME
+   ============================================================ */
+
+.game-screen,
+.game-container {
+  position: relative;
+}
+
+.question-card,
+.game-card {
+  background:
+    radial-gradient(
+      circle at 100% 0%,
+      rgba(79, 124, 255, 0.055),
+      transparent 30%
+    ),
+    #fff;
+}
+
+.question-card,
+.game-question-card {
+  box-shadow: 0 18px 50px rgba(45, 72, 120, 0.1);
+}
+
+.answer-option,
+.answer-btn,
+.quiz-answer {
+  transition:
+    transform 0.18s ease,
+    border-color 0.18s ease,
+    background 0.18s ease,
+    box-shadow 0.18s ease;
+}
+
+.answer-option:hover,
+.answer-btn:hover,
+.quiz-answer:hover {
+  transform: translateY(-2px);
+  border-color: rgba(79, 124, 255, 0.38);
+  box-shadow: 0 8px 22px rgba(45, 72, 120, 0.08);
+}
+
+.answer-option:active,
+.answer-btn:active,
+.quiz-answer:active {
+  transform: translateY(0);
+}
+
+.timer,
+.game-timer {
+  font-variant-numeric: tabular-nums;
+}
+
+/* ============================================================
+   RESULT
+   ============================================================ */
+
+.result-card {
+  background:
+    radial-gradient(
+      circle at 50% 0%,
+      rgba(79, 124, 255, 0.06),
+      transparent 34%
+    ),
+    #fff;
+}
+
+.leaderboard,
+.leaderboard-list {
+  overflow: hidden;
+  border-radius: 18px;
+}
+
+.leaderboard-item,
+.rank-item,
+.result-player {
+  transition:
+    transform 0.18s ease,
+    background 0.18s ease;
+}
+
+.leaderboard-item:hover,
+.rank-item:hover,
+.result-player:hover {
+  transform: translateX(3px);
+  background: #f8faff;
+}
+
+.rank-1,
+.first-place {
+  background: linear-gradient(
+    135deg,
+    rgba(255, 216, 77, 0.18),
+    rgba(255, 255, 255, 0.95)
+  );
+}
+
+.rank-2,
+.second-place {
+  background: linear-gradient(
+    135deg,
+    rgba(214, 222, 235, 0.25),
+    rgba(255, 255, 255, 0.95)
+  );
+}
+
+.rank-3,
+.third-place {
+  background: linear-gradient(
+    135deg,
+    rgba(220, 170, 125, 0.14),
+    rgba(255, 255, 255, 0.95)
+  );
+}
+
+/* ============================================================
+   CREATOR
+   ============================================================ */
+
+.creator-question-card {
+  background: linear-gradient(145deg, #ffffff, #f9fbff);
+}
+
+.creator-question-card .question-top {
+  padding-bottom: 14px;
+  border-bottom: 1px solid #edf1f7;
+}
+
+.creator-answer-row {
+  transition: transform 0.18s ease;
+}
+
+.creator-answer-row:hover {
+  transform: translateX(2px);
+}
+
+.creator-answer-letter {
+  box-shadow: inset 0 0 0 1px rgba(79, 124, 255, 0.08);
+}
+
+.creator-correct input {
+  cursor: pointer;
+}
+
+/* ============================================================
+   AUDIO
+   ============================================================ */
+
+.audio-panel {
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  background: rgba(255, 255, 255, 0.96);
+}
+
+.audio-toggle-btn,
+.audio-close-btn {
+  cursor: pointer;
+  transition:
+    transform 0.18s ease,
+    background 0.18s ease,
+    box-shadow 0.18s ease;
+}
+
+.audio-toggle-btn:hover,
+.audio-close-btn:hover {
+  transform: translateY(-1px);
+  background: #f6f8fc;
+}
+
+/* ============================================================
+   EMPTY STATES
+   ============================================================ */
+
+.empty-state,
+.no-quizzes,
+.no-players {
+  border: 1px dashed #d9e2f0;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.65);
+}
+
+/* ============================================================
+   SCROLLBAR
+   ============================================================ */
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #cbd6e8 transparent;
+}
+
+*::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+  background: #cbd6e8;
+  border-radius: 999px;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: #aebbd0;
+}
+
+/* ============================================================
+   MOBILE
+   ============================================================ */
+
+@media (max-width: 700px) {
+  .topbar {
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+  }
+
+  .home-actions {
+    gap: 10px;
+  }
+
+  .home-actions .btn {
+    width: 100%;
+  }
+
+  .panel,
+  .home-info-card,
+  .quiz-card,
+  .creator-question-card,
+  .lobby-card,
+  .game-card,
+  .result-card {
+    box-shadow: 0 10px 30px rgba(45, 72, 120, 0.075);
+  }
+}
+
+@media (max-width: 500px) {
+  body {
+    background:
+      radial-gradient(
+        circle at 10% 5%,
+        rgba(79, 124, 255, 0.07),
+        transparent 30%
+      ),
+      linear-gradient(180deg, #f8faff 0%, #f3f7ff 100%);
+  }
+
+  .hero::before {
+    width: 170px;
+    height: 170px;
+  }
+
+  .hero::after {
+    width: 120px;
+    height: 120px;
+  }
+
+  .btn:hover {
+    transform: none;
+  }
+
+  .quiz-card:hover,
+  .home-info-card:hover,
+  .creator-question-card:hover {
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
